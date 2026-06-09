@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+	<title>Broken Jukebox</title>
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500,700,400italic' rel='stylesheet' type='text/css'>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<body>
+		<div id="jukebox-img-wrapper">
+			<img src="{{ url_for('static', filename='my-jukebox.jpg') }}">
+			<div id="audioviz-wrapper"></div>
+			<div id="time-display"></div>
+		</div>
+		<div id="playlist-wrapper">
+			<div id="control-wrapper">
+				<img id="play-btn" src="{{ url_for('static', filename='play-icon.png') }}">
+				<div id="stop-btn"></div>
+			</div>
+			<div id="upload">
+				<form action="/" method=post enctype=multipart/form-data>
+				<p>
+					<input type=file name=file><br />
+					<input type=submit class="button-red" value="Upload">
+				</p>
+			</div>
+			<ul id="track-list">
+				{% for track in tracks %}
+					<li>{{ track[1] }}</li>
+				{% endfor %}
+			</ul>
+			<div class="delimiter"></div>
+		</div>
+		<script src="{{ url_for('static', filename='jquery-3.1.1.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='audioviz/src/audioviz-bars.js') }}"></script>
+		<script src="{{ url_for('static', filename='timer.jquery.min.js') }}"></script>
+		<script>
+			function randomInt(min, max) { return Math.floor(min + (Math.random() * ((max + 1) - min))); }
+
+			var audioviz;
+	
+			var play = function(audio_path) {
+				$('#time-display').timer('remove');
+				$("#time-display").timer({
+				    countdown: true,
+				    format: '%M:%S',
+				    duration:   randomInt(600, 1200),
+					callback:   function() {
+					audioviz = new audiovizBars({
+						element: 'audioviz-wrapper',
+						audioPath: audio_path,
+						totalBars: 16,
+						backgroundColor: "black",
+						barsColor: "#7c0000",
+						gapSize: 5,
+					});
+
+					audioviz.sounds[audioviz.current_index].addEventListener("ended", function(){
+					    $.getJSON('/random_track')
+					    .done(function(data) {
+							playNext('/tracks/'+data[0]);
+					    });
+					});
+				    }
+				});
+			}
+
+			var playNext = function(audio_path) {
+				$('#time-display').timer('remove');
+				$("#time-display").timer({
+				    countdown: true,
+				    format: '%M:%S',
+				    duration:   randomInt(600, 1200),
+				    callback:   function() {
+
+					audioviz.changeTrack(audio_path);
+					audioviz.sounds[audioviz.current_index].addEventListener("ended", function(){
+					     $.getJSON('/random_track')
+					    .done(function(data) {
+						console.log(data);
+						playNext('/tracks/'+data[0]);
+					    });
+					});
+				    }
+				});
+			}
+
+			$(document).ready(function() {
+				$('#play-btn').click(function(e) {
+					$.getJSON('/random_track')
+				    .done(function(data) {
+						if (audioviz) {
+							playNext('/tracks/'+data[0]);
+							$('#play-btn').hide();
+							$('#stop-btn').show();
+						}
+						else {
+							play('/tracks/'+data[0]);
+							$('#play-btn').hide();
+							$('#stop-btn').show();
+						}
+				    });
+				});
+
+				$('#stop-btn').click(function(e) {
+					audioviz.sounds[audioviz.current_index].pause();
+					$('#time-display').timer('pause');
+					$('#stop-btn').hide();
+					$('#play-btn').show();
+				});
+
+
+
+				
+
+				$('#time-display').css('line-height', $('#time-display').height() + 'px');
+			});
+		</script>
+	</body>
+</html>

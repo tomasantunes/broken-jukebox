@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Audioviz - Bars</title>
+	
+	<style>
+	
+	body {
+		margin: 0;
+		height: 100vh;
+		overflow: hidden;
+	}
+	
+	#content {
+		height: 100vh;
+		margin: 0 auto;
+	}
+	
+	</style>
+</head>
+<body>
+	<div id="content"></div>
+
+	<script src="../dist/audioviz-bars.min.js"></script>
+	<script>
+
+		audiovizBars({
+			element: 'content',          // id of container html element
+			audioPath: 'GroovyBaby.mp3', // local file path, example music from Audionautix.com
+			totalBars: 32,               // examples: 16, 32, 64, 128
+			backgroundColor: "#231f20",  // hex, RGB or RGBA
+			barsColor: "#f0ad00",        // hex, RGB or RGBA
+			gapSize: 10,                 // pixels
+		});
+		
+	</script>
+	
+</body>
+</html>
